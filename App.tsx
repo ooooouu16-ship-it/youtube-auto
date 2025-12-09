@@ -5,38 +5,45 @@ import { StepIndicator } from './components/StepIndicator';
 import { InputSection } from './components/InputSection';
 import { AnalysisResultView } from './components/AnalysisResultView';
 import { GeneratedScriptView } from './components/GeneratedScriptView';
+import { ApiKeyManager } from './components/ApiKeyManager';
 
 function App() {
+  const [apiKey, setApiKey] = useState<string>('');
   const [appState, setAppState] = useState<AppState>(AppState.INPUT);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [script, setScript] = useState<GeneratedScript | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleAnalyze = async (transcript: string) => {
+    if (!apiKey) {
+      setError('API 키를 먼저 설정해주세요.');
+      return;
+    }
+
     setError(null);
     setAppState(AppState.ANALYZING);
     setAnalysis(null);
     setScript(null);
 
     try {
-      const result = await analyzeTranscript(transcript);
+      const result = await analyzeTranscript(transcript, apiKey);
       setAnalysis(result);
       setAppState(AppState.TOPIC_SELECTION);
     } catch (err: any) {
       console.error(err);
-      setError('대본 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      setError('대본 분석 중 오류가 발생했습니다. API 키를 확인하거나 잠시 후 다시 시도해주세요.');
       setAppState(AppState.INPUT);
     }
   };
 
   const handleGenerate = async (topic: string) => {
-    if (!analysis || !topic) return;
+    if (!analysis || !topic || !apiKey) return;
     
     setError(null);
     setAppState(AppState.GENERATING);
 
     try {
-      const result = await generateViralScript(analysis, topic);
+      const result = await generateViralScript(analysis, topic, apiKey);
       setScript(result);
       setAppState(AppState.COMPLETE);
     } catch (err: any) {
@@ -94,33 +101,39 @@ function App() {
           </div>
         )}
 
-        <div className="mb-12">
-          <StepIndicator currentStep={appState} />
-        </div>
+        {!apiKey ? (
+          <ApiKeyManager onApiKeySet={setApiKey} />
+        ) : (
+          <>
+            <div className="mb-12">
+              <StepIndicator currentStep={appState} />
+            </div>
 
-        <div className="transition-all duration-500 ease-in-out">
-          {appState === AppState.INPUT || appState === AppState.ANALYZING ? (
-            <InputSection 
-              onAnalyze={handleAnalyze} 
-              isAnalyzing={appState === AppState.ANALYZING} 
-            />
-          ) : null}
+            <div className="transition-all duration-500 ease-in-out">
+              {appState === AppState.INPUT || appState === AppState.ANALYZING ? (
+                <InputSection 
+                  onAnalyze={handleAnalyze} 
+                  isAnalyzing={appState === AppState.ANALYZING} 
+                />
+              ) : null}
 
-          {(appState === AppState.TOPIC_SELECTION || appState === AppState.GENERATING) && analysis ? (
-            <AnalysisResultView 
-              analysis={analysis} 
-              onGenerate={handleGenerate} 
-              isGenerating={appState === AppState.GENERATING}
-            />
-          ) : null}
+              {(appState === AppState.TOPIC_SELECTION || appState === AppState.GENERATING) && analysis ? (
+                <AnalysisResultView 
+                  analysis={analysis} 
+                  onGenerate={handleGenerate} 
+                  isGenerating={appState === AppState.GENERATING}
+                />
+              ) : null}
 
-          {appState === AppState.COMPLETE && script ? (
-            <GeneratedScriptView 
-              script={script} 
-              onReset={resetApp} 
-            />
-          ) : null}
-        </div>
+              {appState === AppState.COMPLETE && script ? (
+                <GeneratedScriptView 
+                  script={script} 
+                  onReset={resetApp} 
+                />
+              ) : null}
+            </div>
+          </>
+        )}
       </main>
 
     </div>

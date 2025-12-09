@@ -1,12 +1,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult, GeneratedScript } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // We use gemini-3-pro-preview for complex structural analysis and creative writing
 const MODEL_NAME = "gemini-3-pro-preview";
 
-export const analyzeTranscript = async (transcript: string): Promise<AnalysisResult> => {
+export const analyzeTranscript = async (transcript: string, apiKey: string): Promise<AnalysisResult> => {
+  const ai = new GoogleGenAI({ apiKey });
   const prompt = `
     다음 유튜브 영상 대본을 분석해주세요.
     이 영상이 성공하거나 바이럴이 된 이유를 구조적으로 해체하여 분석해야 합니다.
@@ -66,8 +65,10 @@ export const analyzeTranscript = async (transcript: string): Promise<AnalysisRes
 export const generateViralScript = async (
   analysis: AnalysisResult,
   topic: string,
+  apiKey: string,
   additionalNotes: string = ""
 ): Promise<GeneratedScript> => {
+  const ai = new GoogleGenAI({ apiKey });
   
   const analysisContext = JSON.stringify(analysis);
 
