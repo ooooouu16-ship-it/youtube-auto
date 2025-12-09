@@ -2,22 +2,25 @@ export interface AnalysisResult {
   hookStrategy: string;
   pacing: string;
   tone: string;
-  structure: string;
-  retentionTechniques: string[];
-  audienceTrigger: string;
-  suggestedTopics: string[];
+  structure: {
+    sectionName: string;
+    description: string;
+    estimatedDuration: string;
+  }[];
+  viralFactors: string[];
+  suggestedTopics: string[]; // AI suggested topics based on the structure
 }
 
 export interface GeneratedScript {
-  title: string;
-  thumbnailIdea: string;
+  titleCandidates: string[];
+  thumbnailIdeas: string[];
   scriptContent: string; // Markdown formatted
 }
 
-export enum AppStep {
+export enum AppState {
   INPUT = 'INPUT',
   ANALYZING = 'ANALYZING',
-  REVIEW = 'REVIEW',
+  TOPIC_SELECTION = 'TOPIC_SELECTION', // Replaces REVIEW_ANALYSIS for clearer flow
   GENERATING = 'GENERATING',
-  RESULT = 'RESULT'
+  COMPLETE = 'COMPLETE',
 }
