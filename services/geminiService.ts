@@ -2,7 +2,11 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AnalysisResult, GeneratedScript } from "../types";
 
 // Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI;
+
+export const setApiKey = (apiKey: string) => {
+  ai = new GoogleGenAI({ apiKey });
+};
 
 const analysisSchema: Schema = {
   type: Type.OBJECT,

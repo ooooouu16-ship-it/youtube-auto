@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StepInput } from './components/StepInput';
 import { StepAnalysis } from './components/StepAnalysis';
 import { StepResult } from './components/StepResult';
-import { analyzeTranscript, generateViralScript } from './services/geminiService';
+import { ApiKeyInput } from './components/ApiKeyInput';
+import { analyzeTranscript, generateViralScript, setApiKey } from './services/geminiService';
 import { AnalysisResult, GeneratedScript, AppStep } from './types';
 
 function App() {
@@ -11,6 +12,15 @@ function App() {
   const [result, setResult] = useState<GeneratedScript | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
+
+  useEffect(() => {
+    const savedKey = localStorage.getItem('gemini_api_key');
+    if (savedKey) {
+      setApiKey(savedKey);
+      setHasApiKey(true);
+    }
+  }, []);
 
   const handleAnalyze = async (transcript: string) => {
     setIsLoading(true);
@@ -52,6 +62,11 @@ function App() {
     setError(null);
   };
 
+  const handleApiKeySet = (apiKey: string) => {
+    setApiKey(apiKey);
+    setHasApiKey(true);
+  };
+
   return (
     <div className="min-h-screen bg-black text-zinc-100 selection:bg-brand-500/30 selection:text-brand-200">
       
@@ -70,9 +85,13 @@ function App() {
           </div>
         )}
 
-        {step === AppStep.INPUT && (
-          <StepInput onAnalyze={handleAnalyze} isLoading={isLoading} />
-        )}
+        {!hasApiKey ? (
+          <ApiKeyInput onApiKeySet={handleApiKeySet} />
+        ) : (
+          <>
+            {step === AppStep.INPUT && (
+              <StepInput onAnalyze={handleAnalyze} isLoading={isLoading} />
+            )}
 
         {step === AppStep.ANALYZING && (
           <div className="text-center animate-pulse">
@@ -90,8 +109,10 @@ function App() {
           />
         )}
 
-        {step === AppStep.RESULT && result && (
-           <StepResult result={result} onReset={resetApp} />
+            {step === AppStep.RESULT && result && (
+              <StepResult result={result} onReset={resetApp} />
+            )}
+          </>
         )}
 
       </div>
